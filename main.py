@@ -1,7 +1,7 @@
 import pygame
 import time
 import random
-
+import math
 
 
 pygame.font.init()
@@ -15,15 +15,23 @@ pygame.display.set_caption("jpegfrog")
 background = pygame.image.load("lexi.jpg")
 
 
-PLAYER_VEL = 3
-
 grass = 508
 
+tongue_active = False  # Is the tongue extending or not
+tongue_length = 0  # Current length of the tongue
+tongue_max_length = 200  # Maximum length the tongue can reach
+tongue_speed = 10  # How fast the tongue grows
+tongue_target_pos = (0, 0)  # Target position (mouse cursor)
+
+
+#RAIN VARIABLES
 RAINDROP_WIDTH = 10
 RAINDROP_HEIGHT = 20
 RAINDROP_VEL = 10
 
+#PLAYER VARIABLES
 PLAYER_WIDTH,PLAYER_HEIGHT = 96,140
+PLAYER_VEL = 3
 
 def mirror_images(images):
     return [pygame.transform.flip(image, True, False) for image in images]
@@ -73,6 +81,28 @@ scale_factor = 8
 right_walk_frames = scale_images(walk_frames, scale_factor)
 left_walk_frames = mirror_images(right_walk_frames)
 
+
+def draw_tongue(player, tongue_length, tongue_target_pos):
+    # Get the center of the player's mouth
+    start_pos = (player.x + PLAYER_WIDTH // 2, player.y + PLAYER_HEIGHT // 2)
+
+    # Calculate the direction vector to the mouse cursor
+    dir_x, dir_y = tongue_target_pos[0] - start_pos[0], tongue_target_pos[1] - start_pos[1]
+    distance = math.sqrt(dir_x**2 + dir_y**2)
+
+    # Normalize direction vector
+    if distance != 0:
+        dir_x /= distance
+        dir_y /= distance
+
+    # Calculate the tongue's current end position
+    end_pos = (start_pos[0] + dir_x * tongue_length, start_pos[1] + dir_y * tongue_length)
+
+    pygame.draw.line(WIN, (255, 0, 0), start_pos, end_pos, 5)  # Draw a red line as the tongue
+
+
+
+
 def draw(player,raindrops,current_frame):
     WIN.blit(background,(0,0))
 
@@ -81,24 +111,34 @@ def draw(player,raindrops,current_frame):
     for raindrop in raindrops:
         pygame.draw.rect(WIN,"blue",raindrop)
     
+    if tongue_active:
+        draw_tongue(player, tongue_length,tongue_target_pos)  # Draw the tongue
 
     pygame.display.update()
 
+
+
 def main():
+    global tongue_active, tongue_length, tongue_target_pos  # Ensure we modify these global variables
     run = True
 
     player = pygame.Rect(200,HEIGHT-PLAYER_HEIGHT,PLAYER_WIDTH,PLAYER_HEIGHT)
 
     clock = pygame.time.Clock()
 
+    #rain variables
     raindrop_add_increment = 200
     raindrop_count = 0
-    
+    raindrops = []
+    #player variables
     directionfacing = "right"
     walkstate = False
-
-    raindrops = []
     hit = False
+    #TONGUE VARIABLES
+    tongue_active = False  # Is the tongue extending or not
+    tongue_length = 0  # Current length of the tongue
+    tongue_max_length = 200  # Maximum length the tongue can reach
+    tongue_speed = 10  # How fast the tongue grows
 
     # Animation control
     frame_index = 0  # Current frame index for idle animation
@@ -123,12 +163,24 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
                 break
-
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
+                tongue_active = True
+                tongue_length = 0  # Reset tongue length
+                tongue_target_pos = pygame.mouse.get_pos()
+                
         current_time = pygame.time.get_ticks()
         if current_time - last_frame_time > frame_delay:
             frame_index = (frame_index + 1) % len(idle_frames)  # Loop through frames
             last_frame_time = current_time
         
+        # Tongue growth logic
+        if tongue_active:
+            tongue_length += tongue_speed
+            if tongue_length >= tongue_max_length:
+                tongue_length = tongue_max_length
+                tongue_active = False  # Stop extending the tongue after reaching the max length
+        
+        #wasd movement code
         keys = pygame.key.get_pressed()
         walkstate = True
         if keys[pygame.K_a] and player.x - PLAYER_VEL >= 0: #left
