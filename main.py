@@ -56,14 +56,14 @@ class spritesheet(object):
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
     
-ss = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
+ss = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_walk.png')
 
 def scale_images(images, scale_factor):
     return [pygame.transform.scale(image, (int(image.get_width() * scale_factor), int(image.get_height() * scale_factor))) for image in images]
 
 idle_frames = ss.images_at([(0, 0, 16, 20),(16, 0, 16, 20),(32, 0, 16, 20),(48, 0, 16, 20),(64, 0, 16, 20),(80, 0, 16, 20),(96, 0, 16, 20)], colorkey=(0,0,0))
 
-scale_factor = 4
+scale_factor = 8
 right_idle_frames = scale_images(idle_frames, scale_factor)
 left_idle_frames = mirror_images(right_idle_frames)
 
@@ -123,15 +123,23 @@ def main():
             last_frame_time = current_time
         
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] and player.x - PLAYER_VEL >= 0:
+        if keys[pygame.K_a] and player.x - PLAYER_VEL >= 0: #left
             player.x -= PLAYER_VEL
             directionfacing = "left"
-        elif keys[pygame.K_d] and player.x + PLAYER_WIDTH + PLAYER_VEL <= WIDTH:
+            if keys[pygame.K_s]: #left down
+                player.y += PLAYER_VEL
+            if keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #left down
+                player.y -= PLAYER_VEL
+        elif keys[pygame.K_d] and player.x + PLAYER_WIDTH + PLAYER_VEL <= WIDTH: #right
             player.x += PLAYER_VEL
             directionfacing = "right"
-        elif keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass:
+            if keys[pygame.K_s]: #down right
+                player.y += PLAYER_VEL
+            if keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #up right
+                player.y -= PLAYER_VEL
+        elif keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #up
             player.y -= PLAYER_VEL
-        elif keys[pygame.K_s]:
+        elif keys[pygame.K_s]: #down
             player.y += PLAYER_VEL
         
         for raindrop in raindrops[:]:
