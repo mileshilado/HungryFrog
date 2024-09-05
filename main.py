@@ -3,10 +3,10 @@ import time
 import random
 import math
 
-
-pygame.font.init()
-
-
+pygame.mixer.init()
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.load('sound/weezer.mp3')  # Replace with your MP3 file
+pygame.mixer.music.play(-1)  # -1 makes the music loop indefinitely
 
 WIDTH,HEIGHT = 720,960
 WIN = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -19,19 +19,19 @@ grass = 508
 
 tongue_active = False  # Is the tongue extending or not
 tongue_length = 0  # Current length of the tongue
-tongue_max_length = 200  # Maximum length the tongue can reach
-tongue_speed = 10  # How fast the tongue grows
+tongue_max_length = 150  # Maximum length the tongue can reach
+tongue_speed = 8  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
 
 
 #RAIN VARIABLES
-RAINDROP_WIDTH = 10
-RAINDROP_HEIGHT = 20
-RAINDROP_VEL = 10
+flea_WIDTH = 5
+flea_HEIGHT = 5
+flea_VEL = 4
 
 #PLAYER VARIABLES
 PLAYER_WIDTH,PLAYER_HEIGHT = 96,140
-PLAYER_VEL = 3
+PLAYER_VEL = 2
 
 def mirror_images(images):
     return [pygame.transform.flip(image, True, False) for image in images]
@@ -48,8 +48,8 @@ class spritesheet(object):
         rect = pygame.Rect(rectangle)
         image = pygame.Surface(rect.size).convert()
         image.blit(self.sheet, (0, 0), rect)
-        if colorkey is not None:
-            if colorkey is -1:
+        if colorkey != None:
+            if colorkey == -1:
                 colorkey = image.get_at((0,0))
             image.set_colorkey(colorkey, pygame.RLEACCEL)
         return image
@@ -99,17 +99,22 @@ def draw_tongue(player, tongue_length, tongue_target_pos):
     end_pos = (start_pos[0] + dir_x * tongue_length, start_pos[1] + dir_y * tongue_length)
 
     pygame.draw.line(WIN, (255, 0, 0), start_pos, end_pos, 5)  # Draw a red line as the tongue
+    
+    # Create a bounding box for the tongue
+    tongue_rect = pygame.Rect(min(start_pos[0], end_pos[0]), min(start_pos[1], end_pos[1]),
+                              abs(end_pos[0] - start_pos[0]), abs(end_pos[1] - start_pos[1]))
+    return tongue_rect
 
 
 
 
-def draw(player,raindrops,current_frame):
+def draw(player,fleas,current_frame):
     WIN.blit(background,(0,0))
 
     WIN.blit(current_frame,(player.x,player.y))
 
-    for raindrop in raindrops:
-        pygame.draw.rect(WIN,"blue",raindrop)
+    for flea in fleas:
+        pygame.draw.rect(WIN,"black",flea)
     
     if tongue_active:
         draw_tongue(player, tongue_length,tongue_target_pos)  # Draw the tongue
@@ -127,9 +132,9 @@ def main():
     clock = pygame.time.Clock()
 
     #rain variables
-    raindrop_add_increment = 200
-    raindrop_count = 0
-    raindrops = []
+    flea_add_increment = 2000
+    flea_count = 0
+    fleas = []
     #player variables
     directionfacing = "right"
     walkstate = False
@@ -138,7 +143,7 @@ def main():
     tongue_active = False  # Is the tongue extending or not
     tongue_length = 0  # Current length of the tongue
     tongue_max_length = 200  # Maximum length the tongue can reach
-    tongue_speed = 10  # How fast the tongue grows
+    tongue_speed = 5  # How fast the tongue grows
 
     # Animation control
     frame_index = 0  # Current frame index for idle animation
@@ -146,17 +151,22 @@ def main():
     last_frame_time = pygame.time.get_ticks()
 
     while run:
-        raindrop_count += clock.tick(60)
+        flea_count += clock.tick(60)
 
-        if raindrop_count > raindrop_add_increment:
-            for _ in range(3):
-                raindrop_x = random.randint(0,WIDTH-RAINDROP_WIDTH)
-                raindrop = pygame.Rect(raindrop_x, -RAINDROP_HEIGHT,RAINDROP_WIDTH,RAINDROP_HEIGHT)
-                raindrops.append(raindrop)
+        if flea_count > flea_add_increment:
+            for _ in range(random.randint(0, 7)):  # Add random fleas
+                flea_x = WIDTH + flea_WIDTH  # Start just outside the right edge
+                flea_y = random.randint(-flea_HEIGHT, 400)  # Random vertical position
+                flea = pygame.Rect(flea_x, flea_y, flea_WIDTH, flea_HEIGHT)
+                fleas.append(flea)
 
-        raindrop_add_increment = max(200,raindrop_add_increment - 50)
-        raindrop_count = 0
+            flea_add_increment = max(200, flea_add_increment - 50)
+            flea_count = 0
 
+        for flea in fleas:
+            flea.x -= flea_VEL  # Move fleas leftwards
+            if flea.x < -flea_WIDTH:  # Remove fleas if they go off-screen on the left
+                fleas.remove(flea)
 
 
         for event in pygame.event.get():
@@ -203,14 +213,6 @@ def main():
             player.y += PLAYER_VEL
         else:
             walkstate = False
-        for raindrop in raindrops[:]:
-            raindrop.y += RAINDROP_VEL
-            if raindrop.y > HEIGHT:
-                raindrops.remove(raindrop)
-            elif raindrop.y + raindrop.height >= player.y and raindrop.colliderect(player):
-                raindrops.remove(raindrop)
-                hit = True
-                break
         
         current_time = pygame.time.get_ticks()
         if current_time - last_frame_time > frame_delay:
@@ -231,7 +233,16 @@ def main():
                 current_frame = right_walk_frames[frame_index]  # Get the current frame to display
             elif directionfacing == "left":
                 current_frame = left_walk_frames[frame_index]  # Get the current frame to display
-        draw(player,raindrops,current_frame)
+        draw(player,fleas,current_frame)
+
+        
+        tongue_rect = None
+        if tongue_active:
+            tongue_rect = draw_tongue(player, tongue_length, tongue_target_pos)
+        
+        # Check for collisions
+        if tongue_rect:
+            fleas = [flea for flea in fleas if not tongue_rect.colliderect(flea)]
     
     pygame.quit()
 
