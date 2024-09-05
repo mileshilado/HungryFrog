@@ -21,9 +21,9 @@ grass = 508
 
 RAINDROP_WIDTH = 10
 RAINDROP_HEIGHT = 20
-RAINDROP_VEL = 3
+RAINDROP_VEL = 10
 
-PLAYER_WIDTH,PLAYER_HEIGHT = 64,80
+PLAYER_WIDTH,PLAYER_HEIGHT = 96,140
 
 def mirror_images(images):
     return [pygame.transform.flip(image, True, False) for image in images]
@@ -56,7 +56,7 @@ class spritesheet(object):
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
     
-ss = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_walk.png')
+ss = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
 
 def scale_images(images, scale_factor):
     return [pygame.transform.scale(image, (int(image.get_width() * scale_factor), int(image.get_height() * scale_factor))) for image in images]
