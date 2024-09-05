@@ -4,7 +4,7 @@ import random
 import math
 
 pygame.mixer.init()
-pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.set_volume(0.4)
 hitsound1 = pygame.mixer.Sound('sound/hit1.mp3')  # Replace with your sound file
 hitsound2 = pygame.mixer.Sound('sound/hit2.mp3')
 pygame.mixer.music.load('sound/weezer.mp3')  # Replace with your MP3 file
@@ -90,10 +90,14 @@ right_walk_frames = scale_images(walk_frames, scale_factor)
 left_walk_frames = mirror_images(right_walk_frames)
 
 
-def draw_tongue(player, tongue_length, tongue_target_pos):
+def draw_tongue(player, tongue_length, tongue_target_pos,directionfacing):
     # Get the center of the player's mouth
-    start_pos = (player.x + PLAYER_WIDTH // 2, player.y + PLAYER_HEIGHT // 2)
+    start_pos = (player.x + PLAYER_WIDTH // 2, (player.y + PLAYER_HEIGHT // 2)+25) #facing left tongue is good
 
+    #facing right
+    if directionfacing == "right":
+        start_pos = (player.x + PLAYER_WIDTH - 20 // 2, (player.y + PLAYER_HEIGHT // 2)+25) #facing left tongue is good
+    
     # Calculate the direction vector to the mouse cursor
     dir_x, dir_y = tongue_target_pos[0] - start_pos[0], tongue_target_pos[1] - start_pos[1]
     distance = math.sqrt(dir_x**2 + dir_y**2)
@@ -116,7 +120,7 @@ def draw_tongue(player, tongue_length, tongue_target_pos):
 
 
 
-def draw(player,fleas,current_frame):
+def draw(player,fleas,current_frame,directionfacing):
     WIN.blit(background,(0,0))
 
     WIN.blit(current_frame,(player.x,player.y))
@@ -125,7 +129,7 @@ def draw(player,fleas,current_frame):
         pygame.draw.rect(WIN,"black",flea)
     
     if tongue_active:
-        tongue_rect = draw_tongue(player, tongue_length,tongue_target_pos)  # Draw the tongue
+        tongue_rect = draw_tongue(player, tongue_length,tongue_target_pos,directionfacing)  # Draw the tongue
 
     pygame.display.update()
 
@@ -241,12 +245,12 @@ def main():
                 current_frame = right_walk_frames[frame_index]  # Get the current frame to display
             elif directionfacing == "left":
                 current_frame = left_walk_frames[frame_index]  # Get the current frame to display
-        draw(player,fleas,current_frame)
+        draw(player,fleas,current_frame,directionfacing)
 
         
         tongue_rect = None
         if tongue_active:
-            tongue_rect = draw_tongue(player, tongue_length, tongue_target_pos)
+            tongue_rect = draw_tongue(player, tongue_length, tongue_target_pos,directionfacing)
         
         # Check for collisions
         if tongue_rect:
