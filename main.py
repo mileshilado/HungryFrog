@@ -5,6 +5,8 @@ import math
 
 pygame.mixer.init()
 pygame.mixer.music.set_volume(0.5)
+hitsound1 = pygame.mixer.Sound('sound/hit1.mp3')  # Replace with your sound file
+hitsound2 = pygame.mixer.Sound('sound/hit2.mp3')
 pygame.mixer.music.load('sound/weezer.mp3')  # Replace with your MP3 file
 pygame.mixer.music.play(-1)  # -1 makes the music loop indefinitely
 
@@ -18,9 +20,9 @@ background = pygame.image.load("lexi.jpg")
 grass = 508
 
 tongue_active = False  # Is the tongue extending or not
-tongue_length = 0  # Current length of the tongue
-tongue_max_length = 150  # Maximum length the tongue can reach
-tongue_speed = 8  # How fast the tongue grows
+tongue_length = None  # Current length of the tongue
+tongue_max_length = None  # Maximum length the tongue can reach
+tongue_speed = None  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
 
 
@@ -63,7 +65,13 @@ class spritesheet(object):
         tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
-    
+
+#LOAD FLEA SPRITES
+fleasprites = spritesheet('fleas/fleas.png')
+flea_frames = fleasprites.images_at([(0, 0, 30, 30),(30, 0, 30, 30),(60, 0, 30, 30),(90, 0, 30, 30)], colorkey=(0,0,0))
+
+
+#LOAD FROG SPRITES
 idlesprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
 walksprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_walk.png')
 
@@ -117,7 +125,7 @@ def draw(player,fleas,current_frame):
         pygame.draw.rect(WIN,"black",flea)
     
     if tongue_active:
-        draw_tongue(player, tongue_length,tongue_target_pos)  # Draw the tongue
+        tongue_rect = draw_tongue(player, tongue_length,tongue_target_pos)  # Draw the tongue
 
     pygame.display.update()
 
@@ -142,7 +150,7 @@ def main():
     #TONGUE VARIABLES
     tongue_active = False  # Is the tongue extending or not
     tongue_length = 0  # Current length of the tongue
-    tongue_max_length = 200  # Maximum length the tongue can reach
+    tongue_max_length = 100  # Maximum length the tongue can reach
     tongue_speed = 5  # How fast the tongue grows
 
     # Animation control
@@ -242,7 +250,17 @@ def main():
         
         # Check for collisions
         if tongue_rect:
-            fleas = [flea for flea in fleas if not tongue_rect.colliderect(flea)]
+            remaining_fleas = []
+            for flea in fleas:
+                if tongue_rect.colliderect(flea):
+                    # Randomly choose one of the two sound effects to play
+                    if random.randint(0, 1) == 0:
+                        hitsound1.play()  # Play the first sound effect
+                    else:
+                        hitsound2.play()  # Play the second sound effect
+                else:
+                    remaining_fleas.append(flea)
+            fleas = remaining_fleas
     
     pygame.quit()
 
