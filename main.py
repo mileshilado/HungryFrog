@@ -56,16 +56,22 @@ class spritesheet(object):
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
     
-ss = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
+idlesprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
+walksprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_walk.png')
 
 def scale_images(images, scale_factor):
     return [pygame.transform.scale(image, (int(image.get_width() * scale_factor), int(image.get_height() * scale_factor))) for image in images]
 
-idle_frames = ss.images_at([(0, 0, 16, 20),(16, 0, 16, 20),(32, 0, 16, 20),(48, 0, 16, 20),(64, 0, 16, 20),(80, 0, 16, 20),(96, 0, 16, 20)], colorkey=(0,0,0))
-
+#LOAD IDLE FRAMES
+idle_frames = idlesprites.images_at([(0, 0, 16, 20),(16, 0, 16, 20),(32, 0, 16, 20),(48, 0, 16, 20),(64, 0, 16, 20),(80, 0, 16, 20),(96, 0, 16, 20)], colorkey=(0,0,0))
 scale_factor = 8
 right_idle_frames = scale_images(idle_frames, scale_factor)
 left_idle_frames = mirror_images(right_idle_frames)
+#LOAD WALKING FRAMES
+walk_frames = walksprites.images_at([(0, 0, 16, 20),(16, 0, 16, 20),(32, 0, 16, 20),(48, 0, 16, 20),(64, 0, 16, 20),(80, 0, 16, 20),(96, 0, 16, 20)], colorkey=(0,0,0))
+scale_factor = 8
+right_walk_frames = scale_images(walk_frames, scale_factor)
+left_walk_frames = mirror_images(right_walk_frames)
 
 def draw(player,raindrops,current_frame):
     WIN.blit(background,(0,0))
@@ -89,6 +95,7 @@ def main():
     raindrop_count = 0
     
     directionfacing = "right"
+    walkstate = False
 
     raindrops = []
     hit = False
@@ -123,6 +130,7 @@ def main():
             last_frame_time = current_time
         
         keys = pygame.key.get_pressed()
+        walkstate = True
         if keys[pygame.K_a] and player.x - PLAYER_VEL >= 0: #left
             player.x -= PLAYER_VEL
             directionfacing = "left"
@@ -141,7 +149,8 @@ def main():
             player.y -= PLAYER_VEL
         elif keys[pygame.K_s]: #down
             player.y += PLAYER_VEL
-        
+        else:
+            walkstate = False
         for raindrop in raindrops[:]:
             raindrop.y += RAINDROP_VEL
             if raindrop.y > HEIGHT:
@@ -156,10 +165,20 @@ def main():
             frame_index = (frame_index + 1) % len(idle_frames)  # Loop through frames
             last_frame_time = current_time
 
-        if directionfacing == "right":
-            current_frame = right_idle_frames[frame_index]  # Get the current frame to display
-        elif directionfacing == "left":
-            current_frame = left_idle_frames[frame_index]  # Get the current frame to display
+        
+        
+        #ANIMATION SELECTOR
+        #idling
+        if walkstate == False:
+            if directionfacing == "right":
+                current_frame = right_idle_frames[frame_index]  # Get the current frame to display
+            elif directionfacing == "left":
+                current_frame = left_idle_frames[frame_index]  # Get the current frame to display
+        elif walkstate == True:
+            if directionfacing == "right":
+                current_frame = right_walk_frames[frame_index]  # Get the current frame to display
+            elif directionfacing == "left":
+                current_frame = left_walk_frames[frame_index]  # Get the current frame to display
         draw(player,raindrops,current_frame)
     
     pygame.quit()
