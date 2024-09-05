@@ -33,7 +33,7 @@ flea_VEL = 4
 
 #PLAYER VARIABLES
 PLAYER_WIDTH,PLAYER_HEIGHT = 96,140
-PLAYER_VEL = 2
+global PLAYER_VEL
 
 def mirror_images(images):
     return [pygame.transform.flip(image, True, False) for image in images]
@@ -136,8 +136,10 @@ def draw(player,fleas,current_frame,directionfacing):
 
 
 def main():
-    global tongue_active, tongue_length, tongue_target_pos  # Ensure we modify these global variables
+    global tongue_active, tongue_length, tongue_target_pos, killcount  # Ensure we modify these global variables
+    global tongue_max_length, PLAYER_VEL, tongue_speed
     run = True
+    PLAYER_VEL = 3
 
     player = pygame.Rect(200,HEIGHT-PLAYER_HEIGHT,PLAYER_WIDTH,PLAYER_HEIGHT)
 
@@ -151,6 +153,7 @@ def main():
     directionfacing = "right"
     walkstate = False
     hit = False
+    killcount = 0
     #TONGUE VARIABLES
     tongue_active = False  # Is the tongue extending or not
     tongue_length = 0  # Current length of the tongue
@@ -168,7 +171,7 @@ def main():
         if flea_count > flea_add_increment:
             for _ in range(random.randint(0, 7)):  # Add random fleas
                 flea_x = WIDTH + flea_WIDTH  # Start just outside the right edge
-                flea_y = random.randint(-flea_HEIGHT, 400)  # Random vertical position
+                flea_y = random.randint(-flea_HEIGHT, 500)  # Random vertical position
                 flea = pygame.Rect(flea_x, flea_y, flea_WIDTH, flea_HEIGHT)
                 fleas.append(flea)
 
@@ -263,10 +266,17 @@ def main():
                     else:
                         hitsound2.play()  # Play the second sound effect
                     # Don't add the flea to remaining_fleas (effectively removing it)
+                    killcount += 1
                 else:
                     remaining_fleas.append(flea)  # Only add fleas that are not hit
 
             fleas = remaining_fleas
+            #LEVEL UP
+            if(killcount-5==0):
+                tongue_max_length+=50
+                PLAYER_VEL +=1
+                tongue_speed +=2
+                killcount = 0
     
     pygame.quit()
 
