@@ -262,8 +262,10 @@ def main():
                         hitsound1.play()  # Play the first sound effect
                     else:
                         hitsound2.play()  # Play the second sound effect
+                    # Don't add the flea to remaining_fleas (effectively removing it)
                 else:
-                    remaining_fleas.append(flea)
+                    remaining_fleas.append(flea)  # Only add fleas that are not hit
+
             fleas = remaining_fleas
     
     pygame.quit()
