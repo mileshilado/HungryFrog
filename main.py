@@ -3,6 +3,8 @@ import time
 import random
 import math
 
+pygame.font.init()
+font = pygame.font.SysFont('roboto', 40)
 pygame.mixer.init()
 pygame.mixer.music.set_volume(0.4)
 hitsound1 = pygame.mixer.Sound('sound/hit1.mp3')  # Replace with your sound file
@@ -16,6 +18,23 @@ pygame.display.set_caption("jpegfrog")
 
 background = pygame.image.load("lexi.jpg")
 
+def draw_stats(remaining_time,score,level):
+    # Convert remaining time to seconds
+    seconds = math.ceil(remaining_time/1000)
+    timer_text = font.render(f"Time: {seconds}", True, (255, 255, 255))  # White color for the text
+    timer_text_outline = font.render(f"Time: {seconds}", True, (0, 0, 0))  # Black color for the outline
+    score_text = font.render(f"Score: {score}", True, (255, 255, 255))  # White color for the text
+    score_text_outline = font.render(f"Score: {score}", True, (0, 0, 0))  # Black color for the outline
+    WIN.blit(timer_text_outline, (12,12))
+    WIN.blit(timer_text, (10, 10))
+    WIN.blit(score_text_outline, (12,42))
+    WIN.blit(score_text, (10, 40))
+
+    end_text = font.render(f"YIPEEE!!! YOU GOT {score} FLIES!!!", True, (255, 255, 255))  # White color for the text
+    if seconds <= 0:
+        WIN.blit(end_text, (12.5, (HEIGHT/2)-200))
+
+    
 
 grass = 508
 
@@ -26,7 +45,7 @@ tongue_speed = None  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
 
 
-#RAIN VARIABLES
+#flea VARIABLES
 flea_WIDTH = 5
 flea_HEIGHT = 5
 flea_VEL = 4
@@ -65,10 +84,6 @@ class spritesheet(object):
         tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
                 for x in range(image_count)]
         return self.images_at(tups, colorkey)
-
-#LOAD FLEA SPRITES
-fleasprites = spritesheet('fleas/fleas.png')
-flea_frames = fleasprites.images_at([(0, 0, 30, 30),(30, 0, 30, 30),(60, 0, 30, 30),(90, 0, 30, 30)], colorkey=(0,0,0))
 
 
 #LOAD FROG SPRITES
@@ -120,7 +135,7 @@ def draw_tongue(player, tongue_length, tongue_target_pos,directionfacing):
 
 
 
-def draw(player,fleas,current_frame,directionfacing):
+def draw(player,fleas,current_frame,directionfacing,remaining_time,score,level):
     WIN.blit(background,(0,0))
 
     WIN.blit(current_frame,(player.x,player.y))
@@ -130,7 +145,15 @@ def draw(player,fleas,current_frame,directionfacing):
     
     if tongue_active:
         tongue_rect = draw_tongue(player, tongue_length,tongue_target_pos,directionfacing)  # Draw the tongue
+    
+    level_pos = ((player.x + PLAYER_WIDTH // 2)-30, (player.y + PLAYER_HEIGHT // 2)+60)
+    level_text = font.render(f"Level: {level}", True, (255, 255, 255))  # White color for the text
+    outline_text = font.render(f"Level: {level}", True, (0, 0, 0))  # Black color for the outline
 
+    WIN.blit(outline_text, (level_pos[0] + 2, level_pos[1] + 2))  # Bottom-right
+    WIN.blit(level_text, (level_pos))
+
+    draw_stats(remaining_time,score,level)
     pygame.display.update()
 
 
@@ -139,21 +162,28 @@ def main():
     global tongue_active, tongue_length, tongue_target_pos, killcount  # Ensure we modify these global variables
     global tongue_max_length, PLAYER_VEL, tongue_speed
     run = True
-    PLAYER_VEL = 3
+    PLAYER_VEL = 4
+
+    game_duration = 30 * 1000  # Game lasts for 60 seconds (in milliseconds)
+    start_time = pygame.time.get_ticks()  # Capture the time when the game starts
+
 
     player = pygame.Rect(200,HEIGHT-PLAYER_HEIGHT,PLAYER_WIDTH,PLAYER_HEIGHT)
 
     clock = pygame.time.Clock()
 
-    #rain variables
+    #flea variables
     flea_add_increment = 2000
     flea_count = 0
     fleas = []
+    global flea_VEL
     #player variables
+    level = 1
     directionfacing = "right"
     walkstate = False
     hit = False
     killcount = 0
+    score = 0
     #TONGUE VARIABLES
     tongue_active = False  # Is the tongue extending or not
     tongue_length = 0  # Current length of the tongue
@@ -168,18 +198,31 @@ def main():
     while run:
         flea_count += clock.tick(60)
 
+        #game timer
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time
+        remaining_time = max(0, game_duration - elapsed_time)
+
+
         if flea_count > flea_add_increment:
-            for _ in range(random.randint(0, 7)):  # Add random fleas
-                flea_x = WIDTH + flea_WIDTH  # Start just outside the right edge
-                flea_y = random.randint(-flea_HEIGHT, 500)  # Random vertical position
+            for _ in range(random.randint(0, 10)):  # Add random fleas
+                flea_x = WIDTH + flea_WIDTH + _*10  # Start just outside the right edge
+                flea_y = random.randint(-flea_HEIGHT, 700)  # Random vertical position
                 flea = pygame.Rect(flea_x, flea_y, flea_WIDTH, flea_HEIGHT)
                 fleas.append(flea)
 
-            flea_add_increment = max(200, flea_add_increment - 50)
+            flea_add_increment = max(200, flea_add_increment - 100)
             flea_count = 0
 
         for flea in fleas:
             flea.x -= flea_VEL  # Move fleas leftwards
+            direction = random.randint(1,3)
+            if direction == 1:
+                flea.x -= flea_VEL
+            elif direction == 2:
+                flea.y += flea_VEL
+            elif direction == 3:
+                flea.y -= flea_VEL
             if flea.x < -flea_WIDTH:  # Remove fleas if they go off-screen on the left
                 fleas.remove(flea)
 
@@ -248,7 +291,7 @@ def main():
                 current_frame = right_walk_frames[frame_index]  # Get the current frame to display
             elif directionfacing == "left":
                 current_frame = left_walk_frames[frame_index]  # Get the current frame to display
-        draw(player,fleas,current_frame,directionfacing)
+        draw(player,fleas,current_frame,directionfacing,remaining_time,score,level)
 
         
         tongue_rect = None
@@ -259,7 +302,7 @@ def main():
         if tongue_rect:
             remaining_fleas = []
             for flea in fleas:
-                if tongue_rect.colliderect(flea):
+                if tongue_rect.colliderect(flea) and math.ceil(remaining_time/1000) > 0:
                     # Randomly choose one of the two sound effects to play
                     if random.randint(0, 1) == 0:
                         hitsound1.play()  # Play the first sound effect
@@ -267,16 +310,18 @@ def main():
                         hitsound2.play()  # Play the second sound effect
                     # Don't add the flea to remaining_fleas (effectively removing it)
                     killcount += 1
+                    score+=1
                 else:
                     remaining_fleas.append(flea)  # Only add fleas that are not hit
 
             fleas = remaining_fleas
             #LEVEL UP
             if(killcount-5==0):
-                tongue_max_length+=50
-                PLAYER_VEL +=1
-                tongue_speed +=2
+                tongue_max_length+=60
+                PLAYER_VEL +=4
+                tongue_speed +=10
                 killcount = 0
+                level += 1
     
     pygame.quit()
 
