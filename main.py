@@ -316,7 +316,7 @@ def main():
 
             fleas = remaining_fleas
             #LEVEL UP
-            if(killcount-5==0):
+            if(killcount % 5 == 0 and killcount > 0):
                 tongue_max_length+=60
                 PLAYER_VEL +=4
                 tongue_speed +=10
