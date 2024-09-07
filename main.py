@@ -10,7 +10,7 @@ pygame.mixer.music.set_volume(0.4)
 hitsound1 = pygame.mixer.Sound('sound/hit1.mp3')  # Replace with your sound file
 hitsound2 = pygame.mixer.Sound('sound/hit2.mp3')
 pygame.mixer.music.load('sound/weezer.mp3')  # Replace with your MP3 file
-pygame.mixer.music.play(-1)  # -1 makes the music loop indefinitely
+pygame.mixer.music.play(-1)  # -1 makes the music loop indefinitely 
 
 WIDTH,HEIGHT = 720,960
 WIN = pygame.display.set_mode((WIDTH,HEIGHT))
