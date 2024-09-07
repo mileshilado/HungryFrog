@@ -43,7 +43,7 @@ tongue_length = None  # Current length of the tongue
 tongue_max_length = None  # Maximum length the tongue can reach
 tongue_speed = None  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
-tongue_cooldown = 5
+tongue_cooldown = 0
 tongue_retracting = False
 
 
@@ -89,8 +89,8 @@ class spritesheet(object):
 
 
 #LOAD FROG SPRITES
-idlesprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_idle.png')
-walksprites = spritesheet('FROGLET/PNG/froglet_frog_green_sheet_walk.png')
+idlesprites = spritesheet('frog/PNG/froglet_frog_green_sheet_idle.png')
+walksprites = spritesheet('frog/PNG/froglet_frog_green_sheet_walk.png')
 
 def scale_images(images, scale_factor):
     return [pygame.transform.scale(image, (int(image.get_width() * scale_factor), int(image.get_height() * scale_factor))) for image in images]
@@ -166,7 +166,7 @@ def main():
     run = True
     PLAYER_VEL = 4
 
-    game_duration = 30 * 1000  # Game lasts for 60 seconds (in milliseconds)
+    game_duration = 60 * 1000  # Game lasts for 60 seconds (in milliseconds)
     start_time = pygame.time.get_ticks()  # Capture the time when the game starts
 
 
@@ -186,6 +186,7 @@ def main():
     hit = False
     killcount = 0
     score = 0
+    killincrement = 5
     #TONGUE VARIABLES
     tongue_active = False  # Is the tongue extending or not
     tongue_length = 0  # Current length of the tongue
@@ -193,7 +194,7 @@ def main():
     tongue_speed = 5  # How fast the tongue grows
     tongue_retracting = False
     tongue_cooldown = 0
-    cooldown_rate = 15
+    cooldown_rate = 6
 
     # Animation control
     frame_index = 0  # Current frame index for idle animation
@@ -221,13 +222,15 @@ def main():
 
         for flea in fleas:
             flea.x -= flea_VEL  # Move fleas leftwards
-            direction = random.randint(1,3)
+            direction = random.randint(1,4)
             if direction == 1:
                 flea.x -= flea_VEL
             elif direction == 2:
                 flea.y += flea_VEL
             elif direction == 3:
                 flea.y -= flea_VEL
+            elif direction == 3:
+                flea.x += flea_VEL
             if flea.x < -flea_WIDTH:  # Remove fleas if they go off-screen on the left
                 fleas.remove(flea)
 
@@ -292,6 +295,7 @@ def main():
         else:
             walkstate = False
         
+
         current_time = pygame.time.get_ticks()
         if current_time - last_frame_time > frame_delay:
             frame_index = (frame_index + 1) % len(idle_frames)  # Loop through frames
@@ -336,13 +340,14 @@ def main():
 
             fleas = remaining_fleas
             #LEVEL UP
-            if(killcount % 5 == 0 and killcount > 0):
+            if(killcount % killincrement == 0 and killcount > 0):
                 tongue_max_length+=60
                 PLAYER_VEL +=4
                 tongue_speed +=10
                 killcount = 0
                 level += 1
-                cooldown_rate -= 5
+                cooldown_rate -= 2
+                killincrement += 5
     
     pygame.quit()
 
