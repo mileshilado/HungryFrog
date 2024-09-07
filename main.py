@@ -43,7 +43,7 @@ tongue_length = None  # Current length of the tongue
 tongue_max_length = None  # Maximum length the tongue can reach
 tongue_speed = None  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
-
+tongue_cooldown = 0
 
 #flea VARIABLES
 flea_WIDTH = 5
@@ -254,20 +254,20 @@ def main():
         if keys[pygame.K_a] and player.x - PLAYER_VEL >= 0: #left
             player.x -= PLAYER_VEL
             directionfacing = "left"
-            if keys[pygame.K_s]: #left down
+            if keys[pygame.K_s] and player.y + PLAYER_VEL + PLAYER_HEIGHT < HEIGHT + 15: #left down
                 player.y += PLAYER_VEL
             if keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #left down
                 player.y -= PLAYER_VEL
         elif keys[pygame.K_d] and player.x + PLAYER_WIDTH + PLAYER_VEL <= WIDTH: #right
             player.x += PLAYER_VEL
             directionfacing = "right"
-            if keys[pygame.K_s]: #down right
+            if keys[pygame.K_s] and player.y + PLAYER_VEL + PLAYER_HEIGHT < HEIGHT + 15: #down right
                 player.y += PLAYER_VEL
             if keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #up right
                 player.y -= PLAYER_VEL
         elif keys[pygame.K_w] and player.y - PLAYER_VEL + PLAYER_HEIGHT > grass: #up
             player.y -= PLAYER_VEL
-        elif keys[pygame.K_s]: #down
+        elif keys[pygame.K_s] and player.y + PLAYER_VEL + PLAYER_HEIGHT < HEIGHT + 15: #down
             player.y += PLAYER_VEL
         else:
             walkstate = False
