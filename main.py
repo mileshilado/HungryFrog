@@ -43,7 +43,9 @@ tongue_length = None  # Current length of the tongue
 tongue_max_length = None  # Maximum length the tongue can reach
 tongue_speed = None  # How fast the tongue grows
 tongue_target_pos = (0, 0)  # Target position (mouse cursor)
-tongue_cooldown = 0
+tongue_cooldown = 5
+tongue_retracting = False
+
 
 #flea VARIABLES
 flea_WIDTH = 5
@@ -189,6 +191,9 @@ def main():
     tongue_length = 0  # Current length of the tongue
     tongue_max_length = 100  # Maximum length the tongue can reach
     tongue_speed = 5  # How fast the tongue grows
+    tongue_retracting = False
+    tongue_cooldown = 0
+    cooldown_rate = 15
 
     # Animation control
     frame_index = 0  # Current frame index for idle animation
@@ -232,21 +237,36 @@ def main():
                 run = False
                 break
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
-                tongue_active = True
-                tongue_length = 0  # Reset tongue length
-                tongue_target_pos = pygame.mouse.get_pos()
+                if not tongue_active and not tongue_retracting and tongue_cooldown <= 0:
+                    tongue_active = True
+                    tongue_length = 0  # Reset tongue length
+                    tongue_target_pos = pygame.mouse.get_pos()
                 
         current_time = pygame.time.get_ticks()
         if current_time - last_frame_time > frame_delay:
             frame_index = (frame_index + 1) % len(idle_frames)  # Loop through frames
             last_frame_time = current_time
         
-        # Tongue growth logic
+        # Tongue logic (extension and retraction)
         if tongue_active:
-            tongue_length += tongue_speed
-            if tongue_length >= tongue_max_length:
-                tongue_length = tongue_max_length
-                tongue_active = False  # Stop extending the tongue after reaching the max length
+            if not tongue_retracting:
+                # Tongue extends
+                tongue_length += tongue_speed
+                if tongue_length >= tongue_max_length:
+                    tongue_length = tongue_max_length
+                    tongue_retracting = True  # Start retracting the tongue
+            else:
+                # Tongue retracts
+                tongue_length -= tongue_speed
+                if tongue_length <= 0:
+                    tongue_length = 0
+                    tongue_active = False
+                    tongue_retracting = False  # Set a cooldown period (e.g., 30 frames)
+                    tongue_cooldown = cooldown_rate
+
+        # Handle cooldown timer
+        if tongue_cooldown > 0:
+            tongue_cooldown -= 1
         
         #wasd movement code
         keys = pygame.key.get_pressed()
@@ -322,6 +342,7 @@ def main():
                 tongue_speed +=10
                 killcount = 0
                 level += 1
+                cooldown_rate -= 5
     
     pygame.quit()
 
