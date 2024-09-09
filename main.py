@@ -4,7 +4,7 @@ import random
 import math
 
 pygame.font.init()
-font = pygame.font.SysFont('roboto', 20)
+font = pygame.font.SysFont('roboto', 40)
 pygame.mixer.init()
 pygame.mixer.music.set_volume(0.4)
 hitsound1 = pygame.mixer.Sound('sound/hit1.mp3')  # Replace with your sound file
@@ -12,7 +12,7 @@ hitsound2 = pygame.mixer.Sound('sound/hit2.mp3')
 pygame.mixer.music.load('sound/weezer.mp3')  # Replace with your MP3 file
 pygame.mixer.music.play(-1)  # -1 makes the music loop indefinitely 
 
-WIDTH,HEIGHT = 928,725
+WIDTH,HEIGHT = 720,960
 WIN = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("jpegfrog")
 
@@ -148,7 +148,7 @@ def draw(player,fleas,current_frame,directionfacing,remaining_time,score,level):
     if tongue_active:
         tongue_rect = draw_tongue(player, tongue_length,tongue_target_pos,directionfacing)  # Draw the tongue
     
-    level_pos = ((player.x + PLAYER_WIDTH // 2)-5, (player.y + PLAYER_HEIGHT))
+    level_pos = ((player.x + PLAYER_WIDTH // 2)-30, (player.y + PLAYER_HEIGHT // 2)+60)
     level_text = font.render(f"Level: {level}", True, (255, 255, 255))  # White color for the text
     outline_text = font.render(f"Level: {level}", True, (0, 0, 0))  # Black color for the outline
 
