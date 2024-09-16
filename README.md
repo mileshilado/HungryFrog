@@ -1,6 +1,6 @@
-# jpegfrog
+# Hungryfrog
 
-`jpegfrog` is a fun frog-themed Pygame where players control a frog to catch as many fleas as possible by extending the frog's tongue. The game features smooth animations, audio effects, and progressively faster gameplay as the player levels up.
+Hungryfrog is a fun frog-themed Pygame where players control a frog to catch as many fleas as possible by extending the frog's tongue. The game features smooth animations, audio effects, and progressively faster gameplay as the player levels up.
 
 ## Features
 
