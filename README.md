@@ -2,6 +2,9 @@
 
 Hungryfrog is a fun frog-themed Pygame where players control a frog to catch as many fleas as possible by extending the frog's tongue. The game features smooth animations, audio effects, and progressively faster gameplay as the player levels up.
 
+![{CBE6BEDC-FF08-4CB9-B3AD-6DF2C7CA6F43}](https://github.com/user-attachments/assets/1fbc0d09-fc23-4971-9288-ff6270088775)
+
+
 ## Features
 
 - **Tongue Mechanics:** The frog's tongue extends towards the player's mouse click to catch fleas.
